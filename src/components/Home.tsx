@@ -1,13 +1,15 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { ArrowRight, Plus, ShieldCheck, Tag, TrendingUp, Users } from "lucide-react";
+import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useApp } from "@/lib/app-context";
 import { CATEGORIES, COUNTIES, HOTSPOTS } from "@/lib/constants";
 import { eventStatus } from "@/lib/events";
-import { hotScore, percentOff } from "@/lib/hotScore";
+import { formatEuro, hotScore, isExpired, percentOff } from "@/lib/hotScore";
 import { useSaved } from "@/lib/saved";
 import type { Category, Deal, Feed } from "@/lib/types";
+import { CategoryIcon } from "./CategoryIcon";
 import { DealCard } from "./DealCard";
 import { PollStrip } from "./PollStrip";
 import { Sidebar } from "./Sidebar";
@@ -23,7 +25,7 @@ const SORTS: { id: Sort; label: string }[] = [
 ];
 
 const chip = (active: boolean) =>
-  `shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap ${active ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`;
+  `shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition ${active ? "border-slate-900 bg-slate-900 text-white shadow" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"}`;
 
 function matches(d: Deal, q: string): boolean {
   if (!q) return true;
@@ -96,16 +98,111 @@ export function Home({ initial }: { initial: Feed | null }) {
     return [...n.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([r]) => r);
   }, [deals]);
   const event = eventStatus(now);
+  const stats = useMemo(() => {
+    const offs = deals.map((d) => percentOff(d.sale_price, d.prior_price)).filter((n): n is number => n !== null);
+    return { total: deals.length, avg: offs.length ? Math.round(offs.reduce((a, b) => a + b, 0) / offs.length) : 0, shops: new Set(deals.map((d) => d.retailer)).size };
+  }, [deals]);
+  const topPicks = useMemo(
+    () => [...deals].filter((d) => !isExpired(d) && percentOff(d.sale_price, d.prior_price) !== null).sort((a, b) => hotScore(b, now) - hotScore(a, now)).slice(0, 10),
+    [deals, now],
+  );
+  const catCount = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const d of deals) n.set(d.category, (n.get(d.category) ?? 0) + 1);
+    return n;
+  }, [deals]);
+  const filtered = cat !== "all" || loc !== "all" || spot !== null || shop !== null || proofOnly || query !== "" || sort !== "hot";
+
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-5 px-3 py-4 sm:px-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="mx-auto grid max-w-7xl gap-6 px-3 py-4 sm:px-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-4">
-        {event && (
-          <div className="rounded-xl bg-slate-900 px-4 py-3 text-white">
-            <p className="text-base font-extrabold">{event.label}</p>
-            <p className="text-sm text-slate-300">{event.sub} · <a href="/guide" className="font-semibold text-emerald-300 underline">Is this deal genuine?</a></p>
+        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#131921] via-[#1d2b3a] to-emerald-900 p-5 text-white shadow-lg sm:p-8">
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-20 left-1/3 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
+          <div className="relative">
+            {event && <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-900">🔥 {event.label}</span>}
+            <h1 className="mt-3 max-w-2xl text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">
+              Real Irish deals, checked by real shoppers.
+            </h1>
+            <p className="mt-2 max-w-xl text-sm text-slate-300 sm:text-base">
+              {event ? `${event.sub}. ` : ""}Spot a bargain, vote on whether it is legit, and skip the fake &ldquo;was&rdquo; prices. Free, ad-free, no affiliate links.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2.5">
+              <button onClick={() => requireAuth() && openModal({ type: "post" })} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-bold text-slate-900 shadow hover:bg-amber-300">
+                <Plus size={16} /> Post a deal
+              </button>
+              <Link href="/guide" className="inline-flex items-center gap-1.5 rounded-lg border border-white/30 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10">
+                Is this deal genuine? <ArrowRight size={14} />
+              </Link>
+            </div>
+            <dl className="mt-5 grid max-w-xl grid-cols-3 gap-2 text-center">
+              {[
+                { icon: <Tag size={14} />, v: stats.total, l: "live deals" },
+                { icon: <TrendingUp size={14} />, v: stats.avg ? `${stats.avg}%` : "-", l: "avg. saving" },
+                { icon: <Users size={14} />, v: stats.shops, l: "shops covered" },
+              ].map((x) => (
+                <div key={x.l} className="rounded-xl bg-white/10 px-2 py-2.5 backdrop-blur">
+                  <dt className="flex items-center justify-center gap-1 text-[11px] text-slate-300">{x.icon}{x.l}</dt>
+                  <dd className="text-xl font-extrabold tabular-nums">{x.v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
+        </section>
+
+        <ul className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-700 sm:grid-cols-4">
+          {["Community-verified votes", "Evidence for “was” prices", "Zero ads, zero affiliate links", "Online and in-store, all 26 counties"].map((t) => (
+            <li key={t} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+              <ShieldCheck size={16} className="shrink-0 text-emerald-600" /><span>{t}</span>
+            </li>
+          ))}
+        </ul>
+
+        <section aria-label="Shop by category">
+          <div className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+            {[{ id: "all" as const, label: "All deals" }, ...CATEGORIES].map((c) => {
+              const active = cat === c.id;
+              return (
+                <button key={c.id} onClick={() => { setCat(c.id); setLimit(20); }} aria-pressed={active} className="group flex w-20 shrink-0 flex-col items-center gap-1.5 text-center sm:w-24">
+                  <span className={`flex h-16 w-16 items-center justify-center rounded-full border-2 shadow-sm transition sm:h-[4.5rem] sm:w-[4.5rem] ${active ? "border-amber-400 bg-amber-50 text-slate-900 ring-4 ring-amber-200" : "border-slate-200 bg-white text-slate-600 group-hover:border-amber-300 group-hover:shadow-md"}`}>
+                    {c.id === "all" ? <Tag size={24} /> : <CategoryIcon category={c.id} size={26} />}
+                  </span>
+                  <span className={`text-[11px] font-semibold leading-tight sm:text-xs ${active ? "text-slate-900" : "text-slate-600"}`}>{c.label}</span>
+                  {c.id !== "all" && catCount.get(c.id) ? <span className="-mt-1 text-[10px] text-slate-400">{catCount.get(c.id)} deals</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {!filtered && topPicks.length >= 4 && (
+          <section aria-label="Top picks">
+            <div className="mb-2 flex items-end justify-between">
+              <h2 className="text-lg font-extrabold tracking-tight text-slate-900">🔥 Top picks right now</h2>
+              <button onClick={() => setSort("biggest")} className="text-sm font-semibold text-emerald-700 hover:underline">See biggest savings</button>
+            </div>
+            <div className="no-scrollbar -mx-3 flex snap-x gap-3 overflow-x-auto px-3 pb-2 sm:mx-0 sm:px-0">
+              {topPicks.map((d) => {
+                const off = percentOff(d.sale_price, d.prior_price);
+                return (
+                  <Link key={d.id} href={`/deal/${d.id}`} className="group relative w-40 shrink-0 snap-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:w-48">
+                    <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-300">
+                      <CategoryIcon category={d.category} size={40} />
+                      {off !== null && <span className="absolute left-0 top-2 rounded-r-md bg-rose-600 px-2 py-0.5 text-xs font-extrabold text-white">{off}% OFF</span>}
+                    </div>
+                    <div className="p-2.5">
+                      <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-slate-500">{d.retailer}</p>
+                      <p className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-tight text-slate-900">{d.title}</p>
+                      <p className="mt-1 flex items-baseline gap-1.5"><span className="text-lg font-extrabold text-slate-900">{formatEuro(d.sale_price)}</span>{d.prior_price && <span className="text-xs text-slate-400 line-through">{formatEuro(d.prior_price)}</span>}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
         )}
+
         <PollStrip polls={polls} show={ready || seeded} />
 
         {/* Pinned sort row: a direct child of the feed column so it stays stuck while the feed scrolls. */}
@@ -118,12 +215,6 @@ export function Home({ initial }: { initial: Feed | null }) {
         </div>
 
         <div className="space-y-2">
-          <div className="no-scrollbar flex gap-2 overflow-x-auto" aria-label="Categories">
-            <button onClick={() => setCat("all")} className={chip(cat === "all")}>All</button>
-            {CATEGORIES.map((c) => (
-              <button key={c.id} onClick={() => setCat(c.id)} className={chip(cat === c.id)}>{c.label}</button>
-            ))}
-          </div>
           <div className="no-scrollbar flex items-center gap-2 overflow-x-auto" aria-label="In-store hotspots">
             <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Spotted at</span>
             {HOTSPOTS.map((h) => (
@@ -159,8 +250,8 @@ export function Home({ initial }: { initial: Feed | null }) {
         </details>
 
         {!ready && !seeded ? (
-          <div className="space-y-3" aria-busy="true" aria-label="Loading deals">
-            {[0, 1, 2].map((i) => <div key={i} className="h-48 animate-pulse rounded-xl bg-slate-200" />)}
+          <div className="grid gap-4 sm:grid-cols-2" aria-busy="true" aria-label="Loading deals">
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-96 animate-pulse rounded-2xl bg-slate-200" />)}
           </div>
         ) : loadError && deals.length === 0 ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
@@ -176,10 +267,10 @@ export function Home({ initial }: { initial: Feed | null }) {
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             {list.slice(0, limit).map((d) => <DealCard key={d.id} deal={d} trending={trending.has(d.id)} />)}
             {list.length > limit && (
-              <button onClick={() => setLimit((l) => l + 20)} className="w-full rounded-lg border border-slate-300 bg-white py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              <button onClick={() => setLimit((l) => l + 20)} className="w-full rounded-lg border border-slate-300 bg-white py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:col-span-2">
                 Show more deals
               </button>
             )}
