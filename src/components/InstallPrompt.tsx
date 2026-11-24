@@ -41,7 +41,7 @@ export function InstallPrompt() {
     <div className="fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 mx-auto flex max-w-md md:left-auto md:right-4 md:mx-0 items-center gap-3 rounded-xl border border-emerald-200 bg-white p-3 shadow-lg">
       <Download className="shrink-0 text-emerald-600" size={20} />
       <p className="flex-1 text-sm text-slate-800">
-        {evt ? "Install iesales.ie for one-tap access on Black Friday." : "Add to your Home Screen: tap Share, then “Add to Home Screen”."}
+        {evt ? "Install iesales.ie for one-tap access to every Irish sale." : "Add to your Home Screen: tap Share, then “Add to Home Screen”."}
       </p>
       {evt && (
         <button onClick={async () => { await evt.prompt(); await evt.userChoice; dismiss(); }} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white">Install</button>

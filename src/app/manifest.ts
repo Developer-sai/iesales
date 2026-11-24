@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "iesales.ie: Irish Black Friday deal tracker",
+    name: "iesales.ie: Irish deals & sales tracker",
     short_name: "iesales.ie",
-    description: "Free, ad-free, community-reported Irish Black Friday deals. Vote on what's genuinely worth buying.",
+    description: "Free, ad-free, community-reported Irish deals all year: Black Friday, Christmas, New Year, Easter, summer sales and more. Vote on what's genuinely worth buying.",
     id: "/",
     start_url: "/?source=pwa",
     scope: "/",

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useApp } from "@/lib/app-context";
 import { CATEGORIES, COUNTIES, HOTSPOTS } from "@/lib/constants";
-import { eventStatus } from "@/lib/events";
+import { eventStatus, saleCalendar } from "@/lib/events";
 import { formatEuro, hotScore, isExpired, percentOff } from "@/lib/hotScore";
 import { useSaved } from "@/lib/saved";
 import type { Category, Deal, Feed } from "@/lib/types";
@@ -98,6 +98,7 @@ export function Home({ initial }: { initial: Feed | null }) {
     return [...n.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([r]) => r);
   }, [deals]);
   const event = eventStatus(now);
+  const calendar = useMemo(() => saleCalendar(now, 6), [now]);
   const stats = useMemo(() => {
     const offs = deals.map((d) => percentOff(d.sale_price, d.prior_price)).filter((n): n is number => n !== null);
     return { total: deals.length, avg: offs.length ? Math.round(offs.reduce((a, b) => a + b, 0) / offs.length) : 0, shops: new Set(deals.map((d) => d.retailer)).size };
@@ -121,12 +122,12 @@ export function Home({ initial }: { initial: Feed | null }) {
           <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -bottom-20 left-1/3 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
           <div className="relative">
-            {event && <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-900">🔥 {event.label}</span>}
+            {event && <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-slate-900">{event.emoji} {event.label}</span>}
             <h1 className="mt-3 max-w-2xl text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">
               Real Irish deals, checked by real shoppers.
             </h1>
             <p className="mt-2 max-w-xl text-sm text-slate-300 sm:text-base">
-              {event ? `${event.sub}. ` : ""}Spot a bargain, vote on whether it is legit, and skip the fake &ldquo;was&rdquo; prices. Free, ad-free, no affiliate links.
+              {event ? `${event.sub} ` : ""}Spot a bargain, vote on whether it is legit, and skip the fake &ldquo;was&rdquo; prices. Free, ad-free, no affiliate links.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2.5">
               <button onClick={() => requireAuth() && openModal({ type: "post" })} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-4 py-2.5 text-sm font-bold text-slate-900 shadow hover:bg-amber-300">
@@ -158,6 +159,24 @@ export function Home({ initial }: { initial: Feed | null }) {
             </li>
           ))}
         </ul>
+
+        <section aria-label="Sale calendar">
+          <div className="mb-2 flex items-end justify-between">
+            <h2 className="text-lg font-extrabold tracking-tight text-slate-900">🗓️ Irish sale calendar</h2>
+            <span className="text-xs text-slate-500">Deals all year round</span>
+          </div>
+          <div className="no-scrollbar -mx-3 flex gap-2.5 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+            {calendar.map((e) => (
+              <div key={e.id} className={`w-44 shrink-0 rounded-xl border p-3 shadow-sm ${e.live ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white"}`}>
+                <p className="text-2xl" aria-hidden>{e.emoji}</p>
+                <p className="mt-1 text-sm font-bold leading-tight text-slate-900">{e.name}</p>
+                <p className={`mt-1 text-xs font-semibold ${e.live ? "text-rose-600" : "text-slate-500"}`}>
+                  {e.live ? (e.days <= 1 ? "Live, ends today" : `Live, ${e.days} days left`) : e.days <= 1 ? "Starts tomorrow" : `Starts in ${e.days} days`}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section aria-label="Shop by category">
           <div className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">

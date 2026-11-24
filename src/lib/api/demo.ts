@@ -36,7 +36,7 @@ let deals: Deal[] = [
 ];
 
 let polls: Poll[] = [
-  { id: uid(), user_id: "demo-seed", question: "What are you mainly hunting for this Black Friday? (demo poll)", options: ["Tech", "Home", "Toys", "Fashion"], option_counts: [12, 7, 9, 4], is_pinned: true, created_at: ago(240) },
+  { id: uid(), user_id: "demo-seed", question: "What are you mainly hunting for in the next sale? (demo poll)", options: ["Tech", "Home", "Toys", "Fashion"], option_counts: [12, 7, 9, 4], is_pinned: true, created_at: ago(240) },
   { id: uid(), user_id: "demo-seed", question: "Do you check the price history before buying? (demo poll)", options: ["Always", "Sometimes", "Never"], option_counts: [10, 14, 3], is_pinned: false, created_at: ago(90) },
 ];
 

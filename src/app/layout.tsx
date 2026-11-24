@@ -6,12 +6,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "iesales.ie: Irish Black Friday deal tracker (free, no ads)", template: "%s | iesales.ie" },
+  title: { default: "iesales.ie: Irish deals & sales tracker, all year round (free, no ads)", template: "%s | iesales.ie" },
   description: SITE_SHARE_TEXT,
   applicationName: "iesales.ie",
   alternates: { canonical: "/" },
-  openGraph: { type: "website", siteName: "iesales.ie", locale: "en_IE", title: "iesales.ie: Irish Black Friday deal tracker", description: SITE_SHARE_TEXT },
-  twitter: { card: "summary_large_image", title: "iesales.ie: Irish Black Friday deal tracker", description: SITE_SHARE_TEXT },
+  openGraph: { type: "website", siteName: "iesales.ie", locale: "en_IE", title: "iesales.ie: Irish deals & sales tracker", description: SITE_SHARE_TEXT },
+  twitter: { card: "summary_large_image", title: "iesales.ie: Irish deals & sales tracker", description: SITE_SHARE_TEXT },
   appleWebApp: { capable: true, title: "iesales.ie", statusBarStyle: "default" },
   icons: { icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }], apple: "/icons/apple-touch-icon.png" },
   formatDetection: { telephone: false },

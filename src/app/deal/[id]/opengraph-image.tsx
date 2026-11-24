@@ -49,7 +49,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
         ) : (
           <div style={{ display: "flex", fontSize: 72, fontWeight: 800, color: "#0f172a", lineHeight: 1.1 }}>
-            Irish Black Friday deals, checked by shoppers
+            Irish deals, checked by shoppers
           </div>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 28, color: "#475569" }}>

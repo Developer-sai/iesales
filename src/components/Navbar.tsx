@@ -35,7 +35,7 @@ export function Navbar() {
         <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-700 px-3 py-1 text-center text-[11px] leading-tight text-white sm:py-1.5 sm:text-xs">
           <ShieldCheck size={13} className="hidden shrink-0 sm:block" />
           <span className="sm:hidden">🇮🇪 Free • Zero ads • No affiliate links</span>
-          <span className="hidden sm:inline">🇮🇪 100% community-powered Irish Black Friday tracker • Zero ads • Zero affiliate links • Prices are community-reported</span>
+          <span className="hidden sm:inline">🇮🇪 100% community-powered Irish deals & sales tracker • Zero ads • Zero affiliate links • Prices are community-reported</span>
           <button onClick={() => setBanner(false)} aria-label="Dismiss banner" className="shrink-0 rounded p-0.5 hover:bg-emerald-800/60">
             <X size={14} />
           </button>

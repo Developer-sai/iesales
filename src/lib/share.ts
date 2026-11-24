@@ -19,4 +19,4 @@ export function whatsappLink(d: Deal): string {
 }
 
 export const SITE_SHARE_TEXT =
-  "Free Irish Black Friday deal tracker: community-reported prices, no ads, no affiliate links. Vote on what's genuinely cheap.";
+  "Free Irish deals and sales tracker (Black Friday, Christmas, New Year and every sale in between): community-reported prices, no ads, no affiliate links. Vote on what's genuinely cheap.";

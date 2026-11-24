@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Is this Black Friday deal genuine? An Irish shopper's guide",
+  title: "Is this sale deal genuine? An Irish shopper's guide",
   description: "Irish law says a 'was' price must be the lowest price in the previous 30 days. How to check, what to report, and how to avoid scams.",
   alternates: { canonical: "/guide" },
 };
@@ -14,7 +14,7 @@ export default function Guide() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 text-slate-800">
       <Link href="/" className={a}>&larr; Back to deals</Link>
-      <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Is this Black Friday deal genuine?</h1>
+      <h1 className="mt-4 text-3xl font-extrabold tracking-tight">Is this sale deal genuine?</h1>
       <p className="mt-2 text-slate-600">A short guide for shoppers in Ireland. Last checked 24 November 2026. This is general information, not legal advice.</p>
 
       <h2 className="mt-8 text-xl font-bold">1. The 30-day rule</h2>
